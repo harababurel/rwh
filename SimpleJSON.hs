@@ -15,7 +15,7 @@ data JValue = JString String
             | JBool Bool
             | JNull
             | JArray [JValue]
-            | JObject (String, JValue)
+            | JObject [(String, JValue)]
               deriving (Eq, Ord, Show)
 
 
@@ -39,9 +39,9 @@ getArray :: JValue -> Maybe [JValue]
 getArray (JArray xs) = Just xs
 getArray _           = Nothing
 
-getObject :: JValue -> Maybe (String, JValue)
-getObject (JObject x) = Just x
-getObject _           = Nothing
+getObject :: JValue -> Maybe [(String, JValue)]
+getObject (JObject xs) = Just xs
+getObject _            = Nothing
 
 isNull :: JValue -> Bool
 isNull x = x == JNull
