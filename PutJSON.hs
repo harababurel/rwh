@@ -10,7 +10,7 @@ renderJValue (JBool True)  = "true"
 renderJValue (JBool False) = "false"
 renderJValue (JNull)       = "null"
 renderJValue (JArray xs)   = "[" ++ intercalate ", " (map renderJValue xs) ++ "]"
-renderJValue (JObject xs)  = "{" ++ intercalate "," (map processPair xs) ++ "}"
+renderJValue (JObject xs)  = "{" ++ intercalate ", " (map processPair xs) ++ "}"
     where processPair (k, v) = show k ++ ": " ++ renderJValue v
 
 putJValue :: JValue -> IO ()
