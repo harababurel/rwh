@@ -1,10 +1,16 @@
-module PrettyJSON where
+module PrettyJSON
+    (
+      renderJValue
+    ) where
 
 import Data.List (intercalate)
-import Data.Bits (shitfR, .&.)
+import Data.Bits (shiftR, (.&.))
 import Data.Char (ord)
 import Numeric (showHex)
-import SimpleJSON
+
+import SimpleJSON(JValue(..))
+import Prettify (Doc, (<>), char, double, fsep, hcat, punctuate, text)
+                 -- compact, pretty)
 
 renderJValue :: JValue -> Doc
 renderJValue (JString s)   = string s
@@ -12,12 +18,18 @@ renderJValue (JNumber x)   = double x
 renderJValue (JBool True)  = text "true"
 renderJValue (JBool False) = text "false"
 renderJValue (JNull)       = text "null"
--- renderJValue (JArray xs)   = "[" ++ intercalate ", " (map renderJValue xs) ++ "]"
--- renderJValue (JObject xs)  = "{" ++ intercalate ", " (map processPair xs) ++ "}"
-    -- where processPair (k, v) = show k ++ ": " ++ renderJValue v
+renderJValue (JArray xs)   = series '[' ']' renderJValue xs
+renderJValue (JObject xs)  = series '{' '}' field xs
+    where field (key,val)  = string key
+                          <> text ": "
+                          <> renderJValue val
 
-putJValue :: JValue -> IO ()
-putJValue x = putStrLn $ renderJValue x
+series :: Char -> Char -> (a -> Doc) -> [a] -> Doc
+series open close f = enclose open close
+                    . fsep . punctuate (char ',') . map f
+
+-- putJValue :: JValue -> IO ()
+-- putJValue x = putStrLn $ renderJValue x
 
 string :: String -> Doc
 string = enclose '"' '"' . hcat . map oneChar
@@ -45,20 +57,11 @@ smallHex x  = text "\\u"
 
 astral :: Int -> Doc
 astral x = smallHex (a + 0xd800) <> smallHex (b + 0xdc00)
-    where a = (n `shiftR` 10) .&. 0x3ff
-          b = n .&. 0x3ff
+    where a = (x `shiftR` 10) .&. 0x3ff
+          b = x .&. 0x3ff
 
 hexEscape :: Char -> Doc
 hexEscape c
     | d < 0x10000 = smallHex d
     | otherwise   = astral $ d - 0x10000
     where d = ord c
-
-(<>) :: Doc -> Doc -> Doc
-a <> b = undefined
-
-char :: Char -> Doc
-char c = undefined
-
-hcat :: [Doc] -> Doc
-hcat xs = undefined
